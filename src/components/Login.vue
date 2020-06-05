@@ -1,49 +1,54 @@
 <template>
-<div>
-    <v-container fluid>
-        <p align="center" justify="center"> {{errorMessage}} </p>
-        <v-container class="d-flex justify-center md-3">
-            <h1>MuStore Login Page</h1>
-        </v-container>
-        <v-row align="center" justify="center" style="height: 300px;">
-            <v-form @keyup.native.enter.prevent="login()">
-                <v-text-field v-model="email" label="email" outlined clearable required></v-text-field>
-                <v-text-field v-model="password" label="password" outlined required :type="show ? 'text' : 'password'" :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'" @click:append="show = !show"></v-text-field>
-                <v-btn color="success" @click.prevent="login()">Login</v-btn>
-            </v-form>
-        </v-row>
-    </v-container>
+<div class="container-fluid">
+  <div>
+  <p>{{errorMsg}}</p>
+  </div>
+  <h5>Login</h5>
+    <form action="" v-on:submit.prevent="login">
+      <label for="">Email</label><br>
+      <input type="email" placeholder="Email" id="email" v-model="email"><br>
+      <label for="">Password</label><br>
+      <input type="password" placeholder="Password" id="password" v-model="password"><br>
+      <input type="submit" value="Login">
+  </form>
 </div>
 </template>
 
 <script>
 import axios from 'axios'
+const baseUrl = 'http://localhost:3000'
 
 export default {
   name: 'login',
   data () {
     return {
-      show: false,
       email: '',
       password: '',
-      errorMessage: ''
+      token: localStorage.getItem('token'),
+      errorMsg: ''
     }
   },
   methods: {
     login () {
-      axios.post('http://localhost:3000/user/login', {
-        email: this.email.toLowerCase(),
-        password: this.password.toLowerCase()
+      axios.post(`${baseUrl}/user/login`, {
+        email: this.email,
+        password: this.password
       })
-        .then(res => {
-          if (res) {
-            localStorage.setItem('token', res.token)
+        .then(response => {
+          console.log(response)
+          if (response) {
+            localStorage.setItem('token', response.data.token)
             this.$store.commit('set_login', true)
+            this.$store.commit('set_currentUser', this.email)
             this.$router.push('/MainPage')
           }
         })
         .catch(err => {
-          this.errorMessage = err.response.data.message
+          setTimeout(() => {
+            this.errorMsg = ''
+          }, 4000)
+          this.errorMsg = err.response.data.error
+          console.log(this.errorMsg)
         })
     }
   }
